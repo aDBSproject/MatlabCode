@@ -12,15 +12,15 @@ k = [0:N-1];
 dt = 1/fs;
 f = k*(1/(N*dt));
 
-% 1. gyr opdelen in tijdsstukken
+%% 1. divide the x,y,z gyroscope signals into timeframes
 
-% bijv:
-% time_tremor_calc = 25*60 = per minuut berekenen
-% gyrfilt_devided = matrix waarin een colom data per minuut is
-% aantal colommen = gelijk aan aantal minuten in signaal
+% for example:
+% time_tremor_calc = fs*60 = devide in minutes
+% gyr_devided = matrix in which each column represents data of one minute
+% number of columns is therefore equal to the number of complete minutes in the signal
 
 timeframe_tremor_calc = fs*no_sec;  
-L = length(gyr) - mod(length(gyr),timeframe_tremor_calc);  %  pakt alleen volledige blokken, bijv hele minuten
+L = length(gyr) - mod(length(gyr),timeframe_tremor_calc);  %  only takes complete blocks
 
 gyrx = reshape(gyr(1,1:L), timeframe_tremor_calc, []);
 gyry = reshape(gyr(2,1:L), timeframe_tremor_calc, []);
@@ -29,13 +29,13 @@ gyrz = reshape(gyr(3,1:L), timeframe_tremor_calc, []);
 [no_rows , no_columns ] = size(gyrx);
 no_samples = no_rows;
 
-% zo kun je alle signalen per timeframe zien
-% plot(1:no_samples,gyrx)
-% % en zo van een specifiek signaal
-% plot(1:no_samples,gyrx(:,160))
+% % plotting signals of all timeframes
+% plot(1:no_samples,gyr_devided)
+% % plotting a specific signal f.e. timeframe 160
+% plot(1:no_samples,gyr_devided(:,160))
 
-% 2. maak powerspectrum gefilterde signalen per timeframe
-% GYR geeft complexe getallen
+%% 2. make a power spectrum per timeframe
+% GYR consists of complex numbers
 
 for i = 1:no_columns
     
@@ -43,16 +43,15 @@ GYRx(:,i) = fft(gyrx(:,i));
 GYRy(:,i) = fft(gyry(:,i));
 GYRz(:,i) = fft(gyrz(:,i));
 
-% gyrpowerx geeft de power weer van signalen 
+% gyrpowerx represents the power for the frequencies 
 gyrpowerx(:,i) = (abs(GYRx(:,i)).^2) /no_samples;
 gyrpowery(:,i) = (abs(GYRy(:,i)).^2) /no_samples;
 gyrpowerz(:,i) = (abs(GYRz(:,i)).^2) /no_samples;
 
 end
 
-% gyrpowerx is 160 colommen met daarin de power van verschillende
-% frequentie. Nu pakken we voor alle 160 colommen alleen de power waardes
-% tussen 4 en 8 Hz en nemen hier het gemiddelde van.
+% gyrpower consists of 160 columns including the power of the various frequencies.
+% Now we take the power between 4 and 8 Hz for each column.
 
 for i = 1:no_columns
 powertremorbandx = gyrpowerx(4*(no_samples/12.5):(8*no_samples/12.5),i);
@@ -64,13 +63,19 @@ powertremorz(:,i) = powertremorbandz;
 
 end
 
+% Calculate the mean tremor power between 4-8 Hz for x,y,z
 meanpowertremorx= mean(powertremorx);
 meanpowertremory= mean(powertremory);
 meanpowertremorz= mean(powertremorz);
 
+%% 3. combine x,y,z
+
+% Make a matrix with the x,y,z components and calculate the ean and rms
 tremormatrix = [meanpowertremorx; meanpowertremory; meanpowertremorz];
 meanpowertremortot = mean(tremormatrix);
 rmstremorpower = rms(tremormatrix);
+
+%% 4. plot
 
 figure(4)
 

@@ -52,6 +52,7 @@ end
 
 meanpowertremor = mean(powertremor);
 
+%% 4. plot 
 figure(2)
 timeaxis_days = t ./ (24 * 60 * 60) + start_time;
 timeaxis_days_devided = reshape(timeaxis_days(1:L),timeframe_tremor_calc,[]);
