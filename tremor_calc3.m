@@ -12,38 +12,38 @@ k = [0:N-1];
 dt = 1/fs;
 f = k*(1/(N*dt));
 
-% 1. gyr samennemen. x+y+z
+%% 1. add gyroscope signals. 
 gyrsum = sqrt(gyr(1,:).^2+ gyr(2,:).^2+gyr(3,:).^2);
 
-% 2. gyr opdelen in tijdsstukken
+%% 2. devide gyroscope signal in timeframes
 
-% bijv:
-% time_tremor_calc = fs*60 = per minuut berekenen
-% gyr_devided = matrix waarin een kolom data per minuut is
-% aantal colommen = gelijk aan aantal (complete) minuten in signaal
+% for example:
+% time_tremor_calc = fs*60 = devide in minutes
+% gyr_devided = matrix in which each column represents data of one minute
+% number of columns is therefore equal to the number of complete minutes in the signal
 
 timeframe_tremor_calc = fs*no_sec;  
-L = length(gyrsum) - mod(length(gyrsum),timeframe_tremor_calc);  %  pakt alleen volledige blokken, bijv hele minuten
+L = length(gyrsum) - mod(length(gyrsum),timeframe_tremor_calc);  %  only takes complete blocks
 gyr_devided = reshape(gyrsum(1:L),timeframe_tremor_calc,[]);
 
 [no_rows , no_columns ] = size(gyr_devided);
 no_samples = no_rows;
 
-% % zo kun je alle signalen per timeframe zien
+% % plotting signals of all timeframes
 % plot(1:no_samples,gyr_devided)
-% % en zo van een specifiek signaal
+% % plotting a specific signal f.e. timeframe 160
 % plot(1:no_samples,gyr_devided(:,160))
 
-% 3. maak powerspectrum gefilterde signalen per timeframe
-% GYR geeft complexe getallen
+%% 3. make a power spectrum per timeframe
+% GYR consists of complex numbers
  
 GYR = fft(gyr_devided);
-% fft is applied to each column, dus per tijdsbestek
+% fft is applied to each column, so per timeframe
+
 gyrpower = (abs(GYR).^2) /no_samples;
 
-% gyrpower is 160 kolommen met daarin de power van verschillende
-% frequentie. Nu pakken we voor alle 160 kolommen alleen de power waardes
-% tussen 4 en 8 Hz en nemen hier het gemiddelde van.
+% gyrpower consists of 160 columns including the power of the various frequencies.
+% Now we take the average power between 4 and 8 Hz for each column.
 
 for i = 1:no_columns
 powertremorband = gyrpower(4*(no_samples/12.5):(8*no_samples/12.5),i);
